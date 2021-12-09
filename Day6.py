@@ -26,11 +26,11 @@ def advance_one_generation(old_generation: List[int]) -> List[int]:
 
 def spawning(remaining_time: int, called: int, spawn_time: int = 8) -> int:
     out = 1
-    print(f"I was in iteration {called}, start with {spawn_time} and {remaining_time} rounds remaining")
-    for remain_time in range(remaining_time - spawn_time, 0, -6):
-        print(f"Spawning new fish with {remain_time} rounds remaining")
+    # print(f"I was in iteration {called}, start with {spawn_time} and {remaining_time} rounds remaining")
+    for remain_time in range(remaining_time - spawn_time - 1, -1, -7):
+        # print(f"Spawning new fish with {remain_time} rounds remaining")
         out += spawning(remain_time, called+1)
-        print(f"Generation {called} with output {out}")
+        # print(f"Generation {called} with output {out}")
     return out
     # return 1 + sum([spawning(remain_time) for remain_time in range(remaining_time - spawn_time, 0, -6)])
 
@@ -48,7 +48,7 @@ def part_two():
     out = 0
     for fish in current_generation:
         print(f"Starting with count of {fish}.")
-        a = spawning(80, fish)
+        a = spawning(256, 1, fish)
         out += a
         print(f"Got {a} fish for this one.")
     # for i in range(256):
@@ -57,5 +57,5 @@ def part_two():
     return out #len(current_generation)
 
 # print(part_one())
-# print(part_two())
-print(spawning(36, 1, 1))
+print(part_two())
+# print(spawning(18, 1, 3))
