@@ -93,40 +93,5 @@ def part_two() -> int:
 
 
 
-# print(part_one())
+print(part_one())
 print(part_two())
-
-# testa = prepare_numbers("acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab")
-# a = prepare_numbers("cdfeb fcadb cdfeb cdbaf")
-# print(get_output_value(testa, a))
-#
-# for i in a:
-#     i_new = sort_number(i)
-#     if i_new in decoded:
-#         print(decoded.index(i_new))
-#     else:
-#         print(f"Did not find {i_new}")
-
-
-# # IDEA:
-# Find 1 (2), 4 (4), 7 (3) and 8 (7) -> got 1, 4, 7, 8
-# 9 is found by searching for intersect length 4 between 4 and 6 counts -> got 1, 4, 7, 8, 9
-# From the remaining 6 counts, compare with 1, the one with intersect 2 is the 0, the other is 6 -> got 0, 1, 4, 6, 7, 8, 9
-
-#  0:      1:      2:      3:      4:
-#  aaaa    ....    aaaa    aaaa    ....
-# b    c  .    c  .    c  .    c  b    c
-# b    c  .    c  .    c  .    c  b    c
-#  ....    ....    dddd    dddd    dddd
-# e    f  .    f  e    .  .    f  .    f
-# e    f  .    f  e    .  .    f  .    f
-#  gggg    ....    gggg    gggg    ....
-#
-#   5:      6:      7:      8:      9:
-#  aaaa    aaaa    aaaa    aaaa    aaaa
-# b    .  b    .  .    c  b    c  b    c
-# b    .  b    .  .    c  b    c  b    c
-#  dddd    dddd    ....    dddd    dddd
-# .    f  e    f  .    f  e    f  .    f
-# .    f  e    f  .    f  e    f  .    f
-#  gggg    gggg    ....    gggg    gggg
