@@ -59,6 +59,53 @@ class Polymer():
         results = {self._sequence.count(element):element for element in self.elements}
         return max(results) - min(results)
 
+class DictPolymer():
+    def __init__(self, starting_polymer, instructions: Dict[str, str]):
+        self.sequence: Dict[str, int] = {}
+        self.fill_sequence(starting_polymer)
+        self.instructions: Dict[str, str] = instructions
+
+    def fill_sequence(self, starting_sequence) -> None:
+        for element1, element2 in zip(starting_sequence[:-1], starting_sequence[1:]):
+            combined = f"{element1}{element2}"
+            if combined in self.sequence:
+                self.sequence[combined] += 1
+            else:
+                self.sequence[combined] = 1
+
+    def update_sequence(self) -> None:
+        new_sequence = {}
+        for combination, amount in self.sequence.items():
+            new_element = self.instructions[combination]
+            new1 = f"{combination[0]}{new_element}"
+            new2 = f"{new_element}{combination[1]}"
+            if new1 in new_sequence:
+                new_sequence[new1] += amount
+            else:
+                new_sequence[new1] = amount
+            if new2 in new_sequence:
+                new_sequence[new2] += amount
+            else:
+                new_sequence[new2] = amount
+        self.sequence = new_sequence
+
+    def get_result(self) -> int:
+        output = {}
+        for combination, amount in self.sequence.items():
+            for element in combination:
+                if element in output:
+                    output[element] += amount
+                else:
+                    output[element] = amount
+        for element, amount in output.items():
+            if amount % 2 == 0:
+                output[element] = int(amount / 2)
+            else:
+                output[element] = int(amount / 2 + 0.5)
+
+        return max(output.values()) - min(output.values())
+
+
 def part_one() -> int:
     polymer_sequence, instructions = read_data()
     polymer = Polymer(polymer_sequence, instructions)
@@ -67,13 +114,12 @@ def part_one() -> int:
     return polymer.get_result()
 
 def part_two() -> int:
-    polymer_sequence, instructions = read_data(True)
-    polymer = Polymer(polymer_sequence, instructions)
+    polymer_sequence, instructions = read_data()
+    polymer = DictPolymer(polymer_sequence, instructions)
     for n in range(40):
         print(f"Starting run {n}")
-        polymer.elongate_polymer()
+        polymer.update_sequence()
     return polymer.get_result()
 
 # print(part_one())
-# print(part_two())
-a = [[i, i+1] for i in range(10)]
+print(part_two())
