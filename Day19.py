@@ -30,6 +30,7 @@ class Scanner():
         self.seen_beacons = beacon_coordinates
         self.distances = self.create_distance_dictionary("normal")
         self.sum_distances = self.create_distance_dictionary("sum")
+        self.position = [0, 0, 0]
 
     def create_distance_dictionary(self, variant: str) -> Dict[str, int]:
         distances = {}
@@ -52,24 +53,102 @@ class Scanner():
         return sum([1 for beacon in self.sum_distances.values() if beacon in other_scanner.sum_distances.values()])
 
     def get_shared_beacon_numbers_with_other_scanner(self, other_scanner: "Scanner") -> List[int]:
-        shared_beacons = [beacon_combination for beacon_combination, coordinates in self.sum_distances.items() if coordinates in other_scanner.sum_distances.values()]
+        shared_beacons = [[beacon_combination, coordinates] for beacon_combination, coordinates in self.sum_distances.items() if coordinates in other_scanner.sum_distances.values()]
         return self.get_beacon_numbers_from_combinations(shared_beacons)
 
     def get_beacon_numbers_from_combinations(self, beacon_combinations: List[str]) -> List[int]:
         beacon_numbers: List[int] = []
         for beacon_combination in beacon_combinations:
-            beacon1, beacon2 = beacon_combination.split("-")
+            beacon1, beacon2 = beacon_combination[0].split("-")
             beacon_numbers.append(int(beacon1))
             beacon_numbers.append(int(beacon2))
         return list(set(beacon_numbers))
 
+    def find_corresponding_beacons(self, other_scanner: "Scanner") -> Dict[int, int]:
+        my_distance_list = self.generate_distance_list_for_beacons(other_scanner)
+        other_distance_list = other_scanner.generate_distance_list_for_beacons(self)
+
+        matching_beacons = {}
+        for my_beacon, my_beacon_distances in my_distance_list.items():
+            for other_beacon, other_beacon_distances in other_distance_list.items():
+                if my_beacon_distances == other_beacon_distances:
+                    matching_beacons[my_beacon] = other_beacon
+
+        return matching_beacons
+
+    def generate_distance_list_for_beacons(self, other_scanner: "Scanner") -> Dict[List[int], int]:
+        matching_beacons = self.get_shared_beacon_numbers_with_other_scanner(other_scanner)
+        beacons_with_distances = [[[int(beacon) for beacon in beacon_combination.split("-")], coordinates] for beacon_combination, coordinates in self.sum_distances.items() if coordinates in other_scanner.sum_distances.values()]
+        distance_list = {}
+        for beacon_number in matching_beacons:
+            distances = [distance for measured_beacons, distance in beacons_with_distances if beacon_number in measured_beacons]
+            distances.sort()
+            distance_list[beacon_number] = distances
+        return distance_list
+
+    def print_matching_beacons(self, other_scanner: "Scanner") -> None:
+        matching_beacons = self.find_corresponding_beacons(other_scanner)
+        for beacon1, beacon2 in matching_beacons.items():
+            print(f"{self.seen_beacons[beacon1]} cooresponds to {other_scanner.seen_beacons[beacon2]}")
+
+    def find_relative_scanner_position(self, other_scanner):
+        corresponding_beacons = self.find_corresponding_beacons(other_scanner)
+        changes = [self.get_polarity(other_scanner, corresponding_beacons, pol) for pol in range(3)]
+        return changes
+
+    def get_polarity(self, other_scanner, corresponding_beacons, axis):
+        for index, beacon_number in enumerate(corresponding_beacons.keys()):
+            if index == 0:
+                beacon_1_1 = self.seen_beacons[beacon_number][axis]
+                beacon_2_1 = other_scanner.seen_beacons[corresponding_beacons[beacon_number]][axis]
+            elif index == 1:
+                beacon_1_2 = self.seen_beacons[beacon_number][axis]
+                beacon_2_2 = other_scanner.seen_beacons[corresponding_beacons[beacon_number]][axis]
+
+        polarity = (beacon_1_1 > 0 and beacon_2_1 > 0) or (beacon_1_1 < 0 and beacon_2_1 < 0)
+        same_direction = (abs(beacon_1_1) > abs(beacon_1_2) and abs(beacon_2_1) > abs(beacon_2_2)) or (abs(beacon_1_1) < abs(beacon_1_2) and abs(beacon_2_1) < abs(beacon_2_2))
+        if same_direction:
+            return [beacon_1_1 + beacon_2_1, int(polarity)]
+        return [beacon_1_1 - beacon_2_1, -1]
+
+    def readjust_beacon_coordinates(self, changes):
+        new_beacons = []
+        for beacon_coordinates in self.seen_beacons:
+            new_coordinates = []
+            for axis, change in enumerate(changes):
+                amount, polarity = change
+                if polarity == 1:
+                    new_coord = beacon_coordinates[axis] - amount
+                elif polarity == 0:
+                    new_coord = beacon_coordinates[axis] - 2 * beacon_coordinates[axis] + amount
+                else:
+                    new_coord = beacon_coordinates[axis] + amount
+                new_coordinates.append(new_coord)
+            new_beacons.append(new_coordinates)
+        self.seen_beacons = new_beacons
+
+
 a = read_data(True)
 scanners = [Scanner(numbers, beacons) for numbers, beacons in a.items()]
-for i1, scanner in enumerate(scanners):
-    for i2, other_scanner in enumerate(scanners):
-        if scanner.number == 1 and other_scanner.number == 4:
-            for beacon_number in scanner.get_shared_beacon_numbers_with_other_scanner(other_scanner):
-                print(scanner.seen_beacons[beacon_number])
+b = scanners[0]
+c = scanners[1]
+d = scanners[4]
+# b.get_shared_beacon_numbers_with_other_scanner(c)
+c_changes = b.find_relative_scanner_position(c)
+# c.readjust_beacon_coordinates(c_changes)
+d_changes = c.find_relative_scanner_position(d)
+
+c.print_matching_beacons(d)
+print()
+d.print_matching_beacons(c)
+
+
+
+# for i1, scanner in enumerate(scanners):
+#     for i2, other_scanner in enumerate(scanners):
+#         if scanner.number == 1 and other_scanner.number == 4:
+#             for beacon_number in scanner.get_shared_beacon_numbers_with_other_scanner(other_scanner):
+#                 print(scanner.seen_beacons[beacon_number])
         # if scanner != other_scanner and len(scanner.get_shared_beacon_numbers_with_other_scanner(other_scanner)) >= 12:
         #     print(f"Overlap from {scanner.number} to {other_scanner.number} is: {len(scanner.get_shared_beacon_numbers_with_other_scanner(other_scanner))}")
 
