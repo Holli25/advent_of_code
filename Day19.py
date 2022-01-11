@@ -89,7 +89,7 @@ class Scanner():
     def print_matching_beacons(self, other_scanner: "Scanner") -> None:
         matching_beacons = self.find_corresponding_beacons(other_scanner)
         for beacon1, beacon2 in matching_beacons.items():
-            print(f"{self.seen_beacons[beacon1]} cooresponds to {other_scanner.seen_beacons[beacon2]}")
+            print(f"{self.seen_beacons[beacon1]} corresponds to {other_scanner.seen_beacons[beacon2]}")
 
     def find_relative_scanner_position(self, other_scanner):
         corresponding_beacons = self.find_corresponding_beacons(other_scanner)
@@ -127,6 +127,37 @@ class Scanner():
             new_beacons.append(new_coordinates)
         self.seen_beacons = new_beacons
 
+    def sort_beacon_coordinates_to_other_scanner(self, other_scanner):
+        corresponding_beacons = self.find_corresponding_beacons(other_scanner)
+        for index, beacon_number in enumerate(corresponding_beacons.keys()):
+            if index == 0:
+                beacon_1_1 = self.seen_beacons[beacon_number]
+                beacon_2_1 = other_scanner.seen_beacons[corresponding_beacons[beacon_number]]
+            elif index == 1:
+                beacon_1_2 = self.seen_beacons[beacon_number]
+                beacon_2_2 = other_scanner.seen_beacons[corresponding_beacons[beacon_number]]
+
+        x_difference = (beacon_1_1[0] - beacon_1_2[0]) ** 2
+        y_difference = (beacon_1_1[1] - beacon_1_2[1]) ** 2
+        z_difference = (beacon_1_1[2] - beacon_1_2[2]) ** 2
+
+        original_x = (beacon_2_1[0] - beacon_2_2[0]) ** 2
+        original_y = (beacon_2_1[1] - beacon_2_2[1]) ** 2
+        original_z = (beacon_2_1[2] - beacon_2_2[2]) ** 2
+
+        for index, new_coordinate in enumerate([original_x, original_y, original_z]):
+            if new_coordinate == x_difference:
+                x = index
+            elif new_coordinate == y_difference:
+                y = index
+            elif new_coordinate == z_difference:
+                z = index
+            else:
+                print("Something went horribly wrong...")
+
+        new_beacons = [[beacon[x], beacon[y], beacon[z]] for beacon in self.seen_beacons]
+        self.seen_beacons = new_beacons
+
 
 a = read_data(True)
 scanners = [Scanner(numbers, beacons) for numbers, beacons in a.items()]
@@ -135,12 +166,13 @@ c = scanners[1]
 d = scanners[4]
 # b.get_shared_beacon_numbers_with_other_scanner(c)
 c_changes = b.find_relative_scanner_position(c)
-# c.readjust_beacon_coordinates(c_changes)
+c.readjust_beacon_coordinates(c_changes)
+d.sort_beacon_coordinates_to_other_scanner(c)
 d_changes = c.find_relative_scanner_position(d)
 
 c.print_matching_beacons(d)
 print()
-d.print_matching_beacons(c)
+print(d_changes)
 
 
 
