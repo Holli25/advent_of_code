@@ -1,0 +1,6 @@
+# Ignore all personal inputs, as this is a wish from the Advent of Code creator
+Inputs/
+
+# Ignore python specific files
+__pycyche__/
+.DS_Store
